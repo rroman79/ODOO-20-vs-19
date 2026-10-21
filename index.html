@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="uk" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odoo 20: Повний гайд змін, можливостей та ризиків</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        odoo: {
+                            purple: '#714B67',
+                            teal: '#00A09D',
+                            dark: '#1D1D2B',
+                            accent: '#F07865'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .badge-official { background-color: #065f46; color: #a7f3d0; border: 1px solid #10b981; }
+        .badge-secondary { background-color: #854d0e; color: #fef08a; border: 1px solid #eab308; }
+        .badge-unconfirmed { background-color: #9f1239; color: #fecdd3; border: 1px solid #f43f5e; }
+        pre code { font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.875rem; }
+        .tab-active { border-bottom: 3px solid #00A09D; color: #00A09D; font-weight: 600; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased text-slate-200">
+
+    <!-- Top Header Navigation -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-700/80 bg-slate-900/90 backdrop-blur">
+        <div class="max-w-7xl mx-mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-teal-400 flex items-center justify-center font-bold text-white text-xl shadow-lg shadow-purple-500/20">
+                        O20
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold bg-gradient-to-r from-purple-300 via-teal-300 to-amber-300 bg-clip-text text-transparent">
+                            Odoo 20 Architect Guide
+                        </h1>
+                        <p class="text-xs text-slate-400">Аналіз для C-Level, БА та Tech Leads | «Вареники від Бабусі»</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <div class="relative hidden md:block">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="searchInput" placeholder="Пошук у гайді..." onkeyup="filterContent()" class="pl-9 pr-4 py-1.5 text-xs rounded-lg bg-slate-800 border border-slate-700 text-slate-200 focus:outline-none focus:border-teal-500 w-64 transition-all">
+                    </div>
+                    <a href="#calculator" class="px-3 py-1.5 bg-teal-600/20 text-teal-300 hover:bg-teal-600/30 border border-teal-500/40 rounded-lg text-xs font-medium flex items-center gap-1.5 transition">
+                        <i data-lucide="calculator" class="w-4 h-4"></i>
+                        <span>TCO Калькулятор</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Navigation Tabs -->
+            <nav class="flex space-x-6 border-t border-slate-800 text-xs overflow-x-auto py-2" id="navTabs">
+                <button onclick="switchTab('strategy')" id="tab-strategy" class="tab-btn tab-active py-2 px-1 whitespace-nowrap flex items-center gap-2">
+                    <i data-lucide="briefcase" class="w-4 h-4"></i> I. Стратегія & Бюджет (C-Level)
+                </button>
+                <button onclick="switchTab('ba')" id="tab-ba" class="tab-btn py-2 px-1 text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">
+                    <i data-lucide="git-pull-request" class="w-4 h-4"></i> II. Функціонал & Процеси (БА)
+                </button>
+                <button onclick="switchTab('tech')" id="tab-tech" class="tab-btn py-2 px-1 text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">
+                    <i data-lucide="code-2" class="w-4 h-4"></i> III. Архітектура & Код (Devs)
+                </button>
+                <button onclick="switchTab('casestudy')" id="tab-casestudy" class="tab-btn py-2 px-1 text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">
+                    <i data-lucide="factory" class="w-4 h-4"></i> IV. Кейс «Вареники від Бабусі»
+                </button>
+                <button onclick="switchTab('tools')" id="tab-tools" class="tab-btn py-2 px-1 text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">
+                    <i data-lucide="wrench" class="w-4 h-4"></i> V. TCO Калькулятор
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Trust Markers Legend Bar -->
+    <div class="bg-slate-950/80 border-b border-slate-800 py-2 px-4">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between text-xs gap-3">
+            <div class="flex items-center gap-2 text-slate-400">
+                <i data-lucide="shield-check" class="w-4 h-4 text-teal-400"></i>
+                <span class="font-medium text-slate-300">Маркери довіри та верифікації фактів:</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="badge-official px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1">
+                    <i data-lucide="check-circle-2" class="w-3 h-3"></i> [офіційно] Source / Docs
+                </span>
+                <span class="badge-secondary px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1">
+                    <i data-lucide="alert-triangle" class="w-3 h-3"></i> [вторинне] Release Notes / Demo
+                </span>
+                <span class="badge-unconfirmed px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1">
+                    <i data-lucide="help-circle" class="w-3 h-3"></i> [не підтверджено] Гіпотеза
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ================= SECTION I: STRATEGY & BUDGET ================= -->
+        <section id="section-strategy" class="tab-content space-y-8">
+            <div class="border-b border-slate-800 pb-4">
+                <div class="flex items-center gap-2 text-teal-400 text-sm font-semibold uppercase tracking-wider">Розділ I</div>
+                <h2 class="text-2xl font-bold text-white mt-1">Стратегія, Ліцензування та Бюджетування для C-Level</h2>
+                <p class="text-slate-400 text-sm mt-1">Оцінка фінансових ризиків, інфраструктурних витрат та змін бізнес-моделі Odoo 20.</p>
+            </div>
+
+            <!-- Light License Trap Card -->
+            <div class="glass-panel p-6 rounded-2xl border-l-4 border-l-amber-500 relative overflow-hidden">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="badge-official px-2 py-0.5 rounded text-[10px] font-bold">[офіційно]</span>
+                            <h3 class="text-xl font-bold text-white">Ліцензійна пастка ролі «Light User» (~€8/міс)</h3>
+                        </div>
+                        <p class="text-slate-300 text-sm mt-2 leading-relaxed">
+                            У версії Odoo 20 запроваджено підтип користувача <strong>Light User</strong> із вартістю близько €8/міс (проти ~€20/міс за Standard User). Проте присутній критичний підводний камінь у логіці підрахунку.
+                        </p>
+                    </div>
+                    <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl hidden sm:block">
+                        <i data-lucide="users-minus" class="w-8 h-8"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                        <h4 class="text-sm font-semibold text-rose-400 flex items-center gap-2">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i> Ризик: Автоматична тарифікація HR
+                        </h4>
+                        <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                            Кожен створиний запис у картці працівника (<code class="bg-slate-800 text-amber-300 px-1 py-0.5 rounded">hr.employee</code>) — навіть якщо працівник це фасувальник або водій без доступів до веб-інтерфейсу (без системного залогінювання) — <strong>автоматично враховується як Light User</strong>.
+                        </p>
+                        <div class="mt-3 p-2 bg-rose-950/40 border border-rose-900/50 rounded text-xs text-rose-200">
+                            <strong>Приклад:</strong> На підприємстві «Вареники від Бабусі» працює 200 робітників цеху. Якщо їх завести у module Employee для обліку змін, Odoo дорахує 200 × €8 = <strong>€1,600/міс (€19,200/рік)</strong> незапланованих витрат.
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                        <h4 class="text-sm font-semibold text-amber-400 flex items-center gap-2">
+                            <i data-lucide="alert-octagon" class="w-4 h-4"></i> Тригер каскадного підвищення до Full User
+                        </h4>
+                        <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                            Якщо користувачу Light призначити хоча б одну розширену групу прав (наприклад, видати права «Approver» у погодженні відпусток чи доступ до перегляду базового складу), система <strong>мовчки конвертує статус користувача у Full User (€20/міс)</strong>.
+                        </p>
+                        <ul class="mt-3 text-xs text-slate-400 list-disc list-inside space-y-1">
+                            <li>Перевіряйте групи <code class="text-slate-200">res.groups</code> перед призначенням ролей.</li>
+                            <li>Використовуйте кастомні моделі для працівників без логіну, якщо не потрібен HR-модуль.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Infrastructure Jump & DB Requirements -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="badge-official px-2 py-0.5 rounded text-[10px] font-bold">[офіційно]</span>
+                        <h3 class="text-lg font-bold text-white">Інфраструктурний стрибок: Python 3.12+ & PostgreSQL 16+</h3>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Odoo 20 припиняє підтримку Python 3.10 та PostgreSQL <15. Для On-Premise та розгортань Odoo.sh це вимагає повної модернізації серверного стеку.
+                    </p>
+
+                    <div class="mt-4 space-y-3">
+                        <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs">
+                            <div class="flex justify-between font-semibold text-teal-300">
+                                <span>Ubuntu OS Migration</span>
+                                <span>Перехід з 22.04 LTS на 24.04 LTS</span>
+                            </div>
+                            <p class="text-slate-400 mt-1">Оновлення ОС та збірка системних залежностей (pgvector, libpq-dev, pillow). Простій системи: 2-4 години.</p>
+                        </div>
+                        <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs">
+                            <div class="flex justify-between font-semibold text-teal-300">
+                                <span>PostgreSQL 16 Partitioning</span>
+                                <span>Прискорення SQL-запитів</span>
+                            </div>
+                            <p class="text-slate-400 mt-1">Використання покращеного партиціонування таблиць `stock_move_line` та `account_move_line` дає до +35% швидкості у звітах ERP.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl border-l-4 border-l-rose-500">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="badge-official px-2 py-0.5 rounded text-[10px] font-bold">[офіційно]</span>
+                        <h3 class="text-lg font-bold text-white">Фінансова пастка статусів платежів</h3>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        У Odoo 20 рефакторено ключі та відображення статусів на банківських виписках та рахунках-фактурах.
+                    </p>
+
+                    <div class="mt-4 overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse bg-slate-900/90 rounded-xl overflow-hidden border border-slate-800">
+                            <thead>
+                                <tr class="bg-slate-800/80 border-b border-slate-700 text-slate-300">
+                                    <th class="p-3 border-r border-slate-800 font-semibold whitespace-nowrap">Старий статус (Odoo 17-19)</th>
+                                    <th class="p-3 border-r border-slate-800 font-semibold text-teal-400 whitespace-nowrap">Новий статус (Odoo 20)</th>
+                                    <th class="p-3 font-semibold text-slate-200">Зміст та суть зміни звички</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800 text-slate-300">
+                                <tr>
+                                    <td class="p-3 font-mono text-slate-400 border-r border-slate-800 whitespace-nowrap">in_process («В оплаті»)</td>
+                                    <td class="p-3 font-mono text-emerald-400 font-bold border-r border-slate-800 whitespace-nowrap">paid («Оплачено»)</td>
+                                    <td class="p-3 leading-normal break-words">Клієнт ініціював платіж / банк підтвердив транзакцію (раніше називали «В оплаті»)</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-mono text-slate-400 border-r border-slate-800 whitespace-nowrap">paid («Оплачено»)</td>
+                                    <td class="p-3 font-mono text-teal-300 font-bold border-r border-slate-800 whitespace-nowrap">reconciled («Узгоджено»)</td>
+                                    <td class="p-3 leading-normal break-words">Гроші фізично рознесено за банківською випискою (раніше називали «Оплачено»)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3 p-3 bg-amber-950/40 border border-amber-800/50 rounded-lg text-xs text-amber-200">
+                        <strong>💡 Зміна операційної звички персоналу:</strong> Фактично відбувся зсув термінів на один крок назад. Головна задача для БА/керівника — перебудувати звичку відділу продажів та логістики: <strong>не відвантажувати продукцію орієнтуючись лише на слово «Оплачено»</strong>, якщо за регламентом компанії вимагається повне звірення банківської виписки (перехід у статус «Узгоджено»).
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tax Mode Toggle Feature -->
+            <div class="glass-panel p-6 rounded-2xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="badge-official px-2 py-0.5 rounded text-[10px] font-bold">[офіційно]</span>
+                        <h3 class="text-lg font-bold text-white">Перемикач «Tax Excl. / Tax Incl.» (`document_tax_mode`)</h3>
+                    </div>
+                    <span class="text-xs text-teal-400 bg-teal-950/60 border border-teal-800 px-3 py-1 rounded-full">B2B & B2C Harmony</span>
+                </div>
+                <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                    Раніше для роботи з B2B (ціни без ПДВ) та B2C (ціни з ПДВ) вимагалося створення подвійних прайс-листів або складних податкових позицій (Fiscal Positions). В Odoo 20 на рівні документа додано поле <code class="text-teal-300 font-mono">document_tax_mode</code>.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 text-xs">
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                        <span class="font-semibold text-white block mb-1">1. B2B Продажі</span>
+                        <p class="text-slate-400">Перемикач у режимі Excl. Автоматично додає 20% ПДВ поверх базової гуртової ціни вареників.</p>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                        <span class="font-semibold text-white block mb-1">2. B2C Фірмові магазини</span>
+                        <p class="text-slate-400">Перемикач у режимі Incl. ПДВ вираховується з кінцевої роздрібної ціни на касі POS.</p>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                        <span class="font-semibold text-white block mb-1">3. Економія на кастомізації</span>
+                        <p class="text-slate-400">Усуває потребу в сторонніх модулях перерахунку податків для комбінованих мереж.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION II: BUSINESS ANALYST & PROCESSES ================= -->
+        <section id="section-ba" class="tab-content hidden space-y-8">
+            <div class="border-b border-slate-800 pb-4">
+                <div class="flex items-center gap-2 text-teal-400 text-sm font-semibold uppercase tracking-wider">Розділ II</div>
+                <h2 class="text-2xl font-bold text-white mt-1">Зміни Функціоналу та Бізнес-Процесів (для БА)</h2>
+                <p class="text-slate-400 text-sm mt-1">Рефакторинг моделей складу, виробництва, безпеки та локалізації.</p>
+            </div>
+
+            <!-- Unified Security Model ir.access -->
+            <div class="glass-panel p-6 rounded-2xl">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="badge-official px-2 py-0.5 rounded text-[10px] font-bold">[офіційно]</span>
+                    <h3 class="text-lg font-bold text-white">Революція Безпеки: Об'єднання в модель `ir.access`</h3>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Застарілий розподіл між правами на модель (<code class="text-slate-200">ir.model.access</code>) та правилами записів (<code class="text-slate-200">ir.rule</code>) ліквідовано. Меню "Record Rules" видалено з інтерфейсу налаштувань.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-xs">
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <h4 class="font-bold text-rose-400 mb-2">Як було (Odoo 19 та раніше):</h4>
+                        <ul class="space-y-1.5 text-slate-400 list-disc list-inside">
+                            <li>CSV файли <code class="text-slate-300">ir.model.access.csv</code> для CRUD прав.</li>
+                            <li>XML файли для прав на рівні рядків (Domain rules).</li>
+                            <li>Складність налагодження конфліктів у логіці OR/AND.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-900 p-4 rounded-xl border border-teal-800/50">
+                        <h4 class="font-bold text-teal-300 mb-2">Як стало в Odoo 20 (`ir.access`):</h4>
+                        <ul class="space-y-1.5 text-slate-300 list-disc list-inside">
+                            <li>Єдина уніфікована матриця доступу в інтерфейсі.</li>
+                            <li>Домени записів визначаються безпосередньо в конфігурації ролі.</li>
+                            <li>Швидкість обчислення SQL-запитів зросла на ~20% завдяки відсутності подвійного JOIN `ir_rule`.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Transformation & FOP Risks -->
+            <div class="glass-panel p-6 rounded-2xl border-l-4 border-l-amber-500">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="badge-official px-2 py-0.5 rounded text-[10px] font-bold">[офіційно]</span>
+                        <h3 class="text-lg font-bold text-white">Трансформація Контактів: Видалення перемикача типу «Person/Company»</h3>
+                    </div>
+                    <span class="badge-secondary px-2 py-0.5 rounded text-[10px] font-bold">[вторинне] Ризик для ФОП</span>
+                </div>
+                <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                    У картці контакту більше немає ручного вибору «Фізична особа / Компанія» через перемикач. Прапорець <code class="text-teal-300 font-mono">is_company</code> тепер є **computed пропонованим значенням**, яке обчислюється автоматично на основі заповнення Tax ID (<code class="text-teal-300 font-mono">vat</code>) або структури зв'язаних контактів.
+                </p>
+
+                <div class="mt-4 p-4 bg-slate-900 rounded-xl border border-slate-800 text-xs space-y-2">
+                    <span class="font-bold text-amber-300">⚠️ Критичний підводний камінь для України (ФОП та контрагенти без ЄДРПОУ):</span>
+                    <p class="text-slate-300 leading-relaxed">
+                        Під час міграції бази «Вареники від Бабусі» контрагенти-ФОП, у яких у полі VAT (ІПН) був занесений 10-значний номер або поле було порожнім, можуть автоматично визначитися як **Person**, а не **Company**. Це призводить до:
+                    </p>
+                    <ul class="list-disc list-inside text-slate-400 pl-2 space-y-1">
+                        <li>Втрати відображення назви компанії у первинних документах (видаткових накладних).</li>
+                        <li>Помилок формування ПДВ-податкових накладних при інтеграції з M.E.Doc / Вчасно.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Warehouse Revolution -->
+            <div class="glass-panel p-6 rounded-2xl">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="badge-official px-2 py-0.5 rounded text-[10px] font-bold">[офіційно]</span>
+                    <h3 class="text-lg font-bold text-white">Революція на Складі: Нова структура руху товарів</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div class="text-rose-400 font-bold mb-1">1. Scrap модель видалена</div>
+                        <p class="text-slate-400 leading-relaxed">
+                            Окремий документ <code class="text-slate-300">stock.scrap</code> видалено. Списання браку замороженого тіста або зіпсованої сировини виконується через звичайний <code class="text-teal-300">stock.move</code> з прапорцем <code class="text-teal-300">is_scrap=True</code>.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div class="text-emerald-400 font-bold mb-1">2. Спрощені повернення</div>
+                        <p class="text-slate-400 leading-relaxed">
+                            <strong>Кнопка «Повернути» збереглася.</strong> Проте усунуто обов'язкову прив'язку до складного модального вікна (Wizard). Створювати повернення від покупця (B2B точки) тепер можна як кнопкою з відвантаження, так і прямим документом руху.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div class="text-amber-400 font-bold mb-1">3. Перемикач `store_by`</div>
+                        <p class="text-slate-400 leading-relaxed">
+                            Замість прапорців `use_product_lots` / `use_production_lots` введено єдине нове поле **`store_by`** зі значеннями: <br>
+                            <code class="text-amber-200">quantity, lot, serial, untracked</code>.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div class="text-purple-400 font-bold mb-1">4. Native Wave & Batch</div>
+                        <p class="text-slate-400 leading-relaxed">
+                            Групове відбірання (Batch Pick) та Хвильове (Wave Pick) перенесені в ядро модуля складу. Впроваджено AI-рекомендатор min/max залишків у правилах дозамовлення.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manufacturing Changes -->
+            <div class="glass-panel p-6 rounded-2xl">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="badge-official px-2 py-0.5 rounded text-[10px] font-bold">[офіційно]</span>
+                    <h3 class="text-lg font-bold text-white">Виробництво: Continuous Production vs Ризик скасування Strict Consumption</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                    <div class="bg-slate-900 p-4 rounded-xl border border-emerald-800/40">
+                        <h4 class="font-bold text-emerald-400 mb-2 flex items-center gap-1">
+                            <i data-lucide="play" class="w-4 h-4"></i> Continuous Production (Покрокове оприбуткування)
+                        </h4>
+                        <p class="text-slate-300 leading-relaxed">
+                            <strong>Як працює:</strong> Готова продукція оприбутковується на склад частинами безпосередньо в процесі виготовлення, не чекаючи завершення всієї зміни або закриття виробничого замовлення (MO).
+                        </p>
+                        <p class="text-emerald-300 mt-2">
+                            <strong>🚀 Бізнес-перевага:</strong> Першу готову партію (наприклад, 100 кг вареників) можна одразу продавати та відвантажувати в машину доставки, поки цех продовжує ліпити решту 9,900 кг з Замовлення на виробництво 1 тонни.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-xl border border-rose-800/40">
+                        <h4 class="font-bold text-rose-400 mb-2 flex items-center gap-1">
+                            <i data-lucide="shield-alert" class="w-4 h-4"></i> Ризик: Усі MO стали Flexible!
+                        </h4>
+                        <p class="text-slate-300 leading-relaxed">
+                            У Odoo 20 видалено параметр <code class="text-slate-200">Strict Consumption</code>. Усі виробничі замовлення за замовчуванням дозволяють списувати більше або менше сировини (фаршу/борошна), ніж вказано у специфікації BOM.
+                        </p>
+                        <p class="text-rose-300 mt-2">
+                            <strong>Рішення для БА:</strong> Для збереження рецептури «Вареників від Бабусі» необхідно налаштовувати Automated Validation Rules або розробляти застережні Python-констрейнти.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UI Translation Status & Ukrainian Glossary -->
+            <div class="glass-panel p-6 rounded-2xl">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="badge-secondary px-2 py-0.5 rounded text-[10px] font-bold">[вторинне]</span>
+                        <h3 class="text-lg font-bold text-white">Статус Локалізації UI (`uk.po`) та Глосарій Термінів</h3>
+                    </div>
+                    <span class="text-xs text-rose-400 font-mono">Прогалини перекладу: ~25-30% у новому UI</span>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    У перших релізах Odoo 20 офіційний файл локалізації <code class="text-slate-200">uk.po</code> має незаповнені строки для нових віджетів складу та виробництва. Для навчання операторів заморожувального складу рекомендовано глосарій термінів:
+                </p>
+
+                <div class="overflow-x-auto mt-4">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-slate-300">
+                                <th class="p-2 border border-slate-700">Офіційний термин (EN)</th>
+                                <th class="p-2 border border-slate-700">Рекомендований переклад (UA)</th>
+                                <th class="p-2 border border-slate-700">Контекст для цеху «Вареники від Бабусі»</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800 text-slate-300">
+                            <tr>
+                                <td class="p-2 font-mono text-teal-300">Wave Picking</td>
+                                <td class="p-2">Хвильове відбирання</td>
+                                <td class="p-2">Відбір заморозки для 10 машин доставки за часовими інтервалами.</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 font-mono text-teal-300">Store By</td>
+                                <td class="p-2">Метод відстеження залишків</td>
+                                <td class="p-2">Облік вареників за партіями (Lot) з контролем терміну придатності.</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 font-mono text-teal-300">Flexible Consumption</td>
+                                <td class="p-2">Гнучке списання сировини</td>
+                                <td class="p-2">Відхилення від вагових норм фаршу/тіста при виготовленні.</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 font-mono text-teal-300">Reconciled</td>
+                                <td class="p-2">Звірено / Узгоджено</td>
+                                <td class="p-2">Фінансове підтвердження оплати від B2B-мережі супермаркетів.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION III: ARCHITECTURE & CODE ================= -->
+        <section id="section-tech" class="tab-content hidden space-y-8">
+            <div class="border-b border-slate-800 pb-4">
+                <div class="flex items-center gap-2 text-teal-400 text-sm font-semibold uppercase tracking-wider">Розділ III</div>
+                <h2 class="text-2xl font-bold text-white mt-1">Архітектура, API та Міграція Коду (для Devs)</h2>
+                <p class="text-slate-400 text-sm mt-1">Завершення підтримки XML-RPC, новий JSON-2 API, прикли розробки під Odoo 20.</p>
+            </div>
+
+            <!-- API Sunset & JSON-2 Migration -->
+            <div class="glass-panel p-6 rounded-2xl border-l-4 border-l-rose-500">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="badge-official px-2 py-0.5 rounded text-[10px] font-bold">[офіційно]</span>
+                        <h3 class="text-lg font-bold text-white">Поетапне виведення з експлуатації XML-RPC / JSON-RPC -> Перехід на JSON-2 API</h3>
+                    </div>
+                    <span class="text-xs font-mono bg-rose-950 text-rose-300 border border-rose-800 px-2 py-1 rounded">BREAKING CHANGE</span>
+                </div>
+                <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                    У Odoo 20 повністю <strong>видалено сервіс `/xmlrpc/2/db`</strong>. Інші ендпоінти XML-RPC оголошено застарілими (deprecated) з повним вилученням у Odoo 22.0. Усі нові інтеграції (з ТЗД, вагами, роздрібними терміналами, BAS/1C) <strong>зобов'язані переходити на JSON-2 API</strong> (`POST /json/2/`).
+                </p>
+
+                <!-- Code Example Tabs -->
+                <div class="mt-4 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden text-xs">
+                    <div class="bg-slate-900 px-4 py-2 border-b border-slate-800 flex items-center justify-between">
+                        <span class="font-mono text-teal-400 font-semibold">Новий формат запиту: JSON-2 API (Python Client)</span>
+                        <button onclick="copyCode('json2-code')" class="text-slate-400 hover:text-white flex items-center gap-1">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Скопіювати
+                        </button>
+                    </div>
+                    <pre class="p-4 overflow-x-auto text-emerald-300 font-mono" id="json2-code"><code>import requests
+
+# Ендпоінт Odoo 20 JSON-2 API
+URL = "https://varenyky.odoo.com/json/2/api"
+
+headers = {
+    "Content-Type": "application/json",
+    "X-Odoo-Api-Key": "your_generated_api_key_here"
+}
+
+# Отримання залишків замороженої продукції
+payload = {
+    "jsonrpc": "2.0",
+    "method": "call",
+    "params": {
+        "model": "stock.quant",
+        "method": "search_read",
+        "args": [[["location_id.usage", "=", "internal"], ["quantity", ">", 0]]],
+        "kwargs": {
+            "fields": ["product_id", "quantity", "lot_id", "location_id"],
+            "limit": 50
+        }
+    },
+    "id": 1
+}
+
+response = requests.post(URL, json=payload, headers=headers)
+print(response.json())</code></pre>
+                </div>
+            </div>
+
+            <!-- Code Snippets for Odoo 20 Backend -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Python Scrap move in Odoo 20 -->
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="badge-official px-2 py-0.5 rounded text-[10px] font-bold">[офіційно]</span>
+                        <h4 class="font-bold text-white text-sm">Списання браку в Odoo 20 (Python)</h4>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3">Створення `stock.move` з прапорцем `is_scrap=True` замість моделі `stock.scrap`.</p>
+                    
+                    <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden text-xs">
+                        <pre class="p-3 text-amber-200 font-mono overflow-x-auto"><code># Списання зіпсованого тіста у цеху
+move = self.env['stock.move'].create({
+    'name': 'Списання зіпсованої сировини',
+    'product_id': dough_product_id.id,
+    'product_uom_qty': 15.5, # кг
+    'product_uom': kg_uom_id.id,
+    'location_id': kitchen_loc_id.id,
+    'location_dest_id': scrap_loc_id.id,
+    'is_scrap': True, # Ключовий прапорець Odoo 20!
+    'store_by': 'lot', # Замість lot_id прапорців
+})
+move._action_done()</code></pre>
+                    </div>
+                </div>
+
+                <!-- Migration of ir.access security rules -->
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="badge-official px-2 py-0.5 rounded text-[10px] font-bold">[офіційно]</span>
+                        <h4 class="font-bold text-white text-sm">Опис прав доступу `ir.access` (XML/CSV)</h4>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3">Нова об'єднана синтаксична структура для модулів в Odoo 20.</p>
+                    
+                    <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden text-xs">
+                        <pre class="p-3 text-cyan-300 font-mono overflow-x-auto"><code>&lt;!-- security/ir_access.xml --&gt;
+&lt;odoo&gt;
+  &lt;record id="access_varenyky_freezer_manager" model="ir.access"&gt;
+    &lt;field name="name"&gt;Freezer Manager Full Access&lt;/field&gt;
+    &lt;field name="model_id" ref="model_stock_quant"/&gt;
+    &lt;field name="group_id" ref="group_freezer_supervisor"/&gt;
+    &lt;field name="perm_read" eval="1"/&gt;
+    &lt;field name="perm_write" eval="1"/&gt;
+    &lt;field name="perm_create" eval="1"/&gt;
+    &lt;field name="perm_unlink" eval="0"/&gt;
+    &lt;field name="domain_force"&gt;[('location_id.barcode', 'like', 'FREEZER%')]&lt;/field&gt;
+  &lt;/record&gt;
+&lt;/odoo&gt;</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION IV: PRACTICAL CASE STUDY ================= -->
+        <section id="section-casestudy" class="tab-content hidden space-y-8">
+            <div class="border-b border-slate-800 pb-4">
+                <div class="flex items-center gap-2 text-teal-400 text-sm font-semibold uppercase tracking-wider">Розділ IV</div>
+                <h2 class="text-2xl font-bold text-white mt-1">Практичний бізнес-кейс: «Вареники від Бабусі»</h2>
+                <p class="text-slate-400 text-sm mt-1">Виробництво, морозильні камери, власний транспорт, мережа фірмових магазинів, B2B та B2C.</p>
+            </div>
+
+            <!-- Company Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                <div class="glass-panel p-4 rounded-xl border-t-2 border-t-purple-500">
+                    <span class="text-slate-400 block">🏭 Виробництво</span>
+                    <span class="text-lg font-bold text-white block mt-1">20 тон / добу</span>
+                    <span class="text-slate-400 mt-1 block">5 цехів (Тісто, Фарш, Ліпка, Заморозка, Пакування)</span>
+                </div>
+                <div class="glass-panel p-4 rounded-xl border-t-2 border-t-teal-500">
+                    <span class="text-slate-400 block">❄️ Логістика та Склад</span>
+                    <span class="text-lg font-bold text-white block mt-1">3 Морозильники</span>
+                    <span class="text-slate-400 mt-1 block">15 рефрижераторів, WMS хвильовий відбір</span>
+                </div>
+                <div class="glass-panel p-4 rounded-xl border-t-2 border-t-amber-500">
+                    <span class="text-slate-400 block">🏪 Торгова мережа</span>
+                    <span class="text-lg font-bold text-white block mt-1">45 Фірмових точок</span>
+                    <span class="text-slate-400 mt-1 block">POS Odoo Offline mode, B2C продаж</span>
+                </div>
+                <div class="glass-panel p-4 rounded-xl border-t-2 border-t-emerald-500">
+                    <span class="text-slate-400 block">💼 B2B Дистрибуція</span>
+                    <span class="text-lg font-bold text-white block mt-1">120 Контрагентів</span>
+                    <span class="text-slate-400 mt-1 block">ФОП та Національні мережі супермаркетів</span>
+                </div>
+            </div>
+
+            <!-- Migration & Architecture Strategy Map -->
+            <div class="glass-panel p-6 rounded-2xl">
+                <h3 class="text-lg font-bold text-white mb-4">Карта впровадження Odoo 20 для «Вареники від Бабусі»</h3>
+
+                <div class="space-y-4 text-xs">
+                    <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-lg bg-purple-900/60 text-purple-300 font-bold flex items-center justify-center shrink-0">1</div>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">Оптимізація ліцензій та кадрів</h4>
+                            <p class="text-slate-300 mt-1">
+                                180 працівників ліпки та пакування не заводити як користувачів у `hr.employee`. Замість цього створити кастомний модуль обліку робочих змін `bar.code.shift` без створення HR-профілів. Економія: <strong>€1,440/міс</strong>.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-lg bg-teal-900/60 text-teal-300 font-bold flex items-center justify-center shrink-0">2</div>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">Контроль суворого дотримання рецептури вареників</h4>
+                            <p class="text-slate-300 mt-1">
+                                Оскільки в Odoo 20 видалено Strict Consumption, розробити Python-констрейнт для модуля `mrp`, який блокує закриття замовлення на виробництво, якщо перевитрата сировини (витрати м'яса/вишні) перевищує 3% без узгодження технолога.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-lg bg-amber-900/60 text-amber-300 font-bold flex items-center justify-center shrink-0">3</div>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">Хвильовий відбір (Wave Picking) для морозильних камер</h4>
+                            <p class="text-slate-300 mt-1">
+                                Налаштування нативного Wave Picking для пришвидшення роботи комірників у морозильних камерах (-18°C). Зменшення часу перебування персоналу на холоді за рахунок консолідованих хвиль відвантаження для автопарку.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION V: TOOLS & CALCULATOR ================= -->
+        <section id="section-tools" class="tab-content hidden space-y-8">
+            <div class="border-b border-slate-800 pb-4">
+                <div class="flex items-center gap-2 text-teal-400 text-sm font-semibold uppercase tracking-wider">Розділ V</div>
+                <h2 class="text-2xl font-bold text-white mt-1">TCO Калькулятор</h2>
+                <p class="text-slate-400 text-sm mt-1">Розрахунок вартості володіння Odoo 20 та оцінка ризиків міграції.</p>
+            </div>
+
+            <!-- Calculator Widget -->
+            <div id="calculator" class="glass-panel p-6 rounded-2xl border border-teal-500/30">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="calculator" class="w-6 h-6 text-teal-400"></i>
+                        Калькулятор Ліцензій та TCO Odoo 20
+                    </h3>
+                    <span class="text-xs bg-slate-800 text-slate-300 px-3 py-1 rounded-full border border-slate-700">Enterprise Pricing 2026</span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Inputs -->
+                    <div class="space-y-4 text-xs">
+                        <div>
+                            <label class="block text-slate-300 font-medium mb-1">Standard Full Users (€20/міс):</label>
+                            <input type="number" id="calc-full-users" value="25" oninput="calculateTCO()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-teal-500 focus:outline-none">
+                            <span class="text-[11px] text-slate-500">Бухгалтерія, БА, Менеджери, Технологи</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 font-medium mb-1">Light Users (€8/міс):</label>
+                            <input type="number" id="calc-light-users" value="15" oninput="calculateTCO()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-teal-500 focus:outline-none">
+                            <span class="text-[11px] text-slate-500">Водії, комірники з обмеженими правами</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 font-medium mb-1">Працівники HR без системного входу (`hr.employee`):</label>
+                            <input type="number" id="calc-hr-employees" value="120" oninput="calculateTCO()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-teal-500 focus:outline-none">
+                            <span class="text-[11px] text-amber-400">⚠️ УВАГА: В Odoo 20 автоматично тарифікуються як Light!</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 font-medium mb-1">Хостинг / Сервер:</label>
+                            <select id="calc-hosting" onchange="calculateTCO()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-teal-500 focus:outline-none">
+                                <option value="odoo_sh">Odoo.sh Dedicated (~€250/міс)</option>
+                                <option value="on_premise">On-Premise Ubuntu 24.04 (~€180/міс)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Output Results -->
+                    <div class="lg:col-span-2 bg-slate-950 p-6 rounded-xl border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Щомісячний та Річний бюджет:</h4>
+                            
+                            <div class="grid grid-cols-2 gap-4 text-xs">
+                                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                                    <span class="text-slate-400 block">Ліцензії Full Users:</span>
+                                    <span id="res-full-cost" class="text-lg font-bold text-white mt-1 block">€500 / міс</span>
+                                </div>
+                                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                                    <span class="text-slate-400 block">Light Users (вкл. HR Employee Trap):</span>
+                                    <span id="res-light-cost" class="text-lg font-bold text-amber-400 mt-1 block">€1,080 / міс</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 p-4 bg-teal-950/30 border border-teal-800/50 rounded-xl flex items-center justify-between">
+                                <div>
+                                    <span class="text-xs text-teal-300 font-medium">Загальний TCO за 1 рік (з хостингом):</span>
+                                    <div id="res-total-year" class="text-2xl font-extrabold text-teal-300 mt-0.5">€21,960 / рік</div>
+                                </div>
+                                <i data-lucide="trending-up" class="w-8 h-8 text-teal-400"></i>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3 bg-rose-950/30 border border-rose-900/40 rounded-lg text-xs text-rose-300">
+                            <strong>💡 Порада оптимізації для БА:</strong> Якщо перенести <span id="res-hr-count" class="font-bold">120</span> працівників із модуля <code class="bg-slate-800 text-amber-300 px-1 py-0.5 rounded">hr.employee</code> у кастомну таблицю без ліцензування, ви заощадите <strong id="res-hr-savings" class="text-emerald-400 font-bold">€11,520 на рік!</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>Odoo 20 Architectural Master Guide | Створено для розробників, бізнес-аналітиків та керівників | Всі права захищено</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Switch Tabs Functionality
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+            });
+
+            // Remove active classes from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('text-slate-400');
+            });
+
+            // Show current tab content
+            const selectedContent = document.getElementById(`section-${tabId}`);
+            if (selectedContent) {
+                selectedContent.classList.remove('hidden');
+            }
+
+            // Set active style on selected tab button
+            const selectedTab = document.getElementById(`tab-${tabId}`);
+            if (selectedTab) {
+                selectedTab.classList.add('tab-active');
+                selectedTab.classList.remove('text-slate-400');
+            }
+        }
+
+        // TCO Calculator Logic
+        function calculateTCO() {
+            const fullUsers = parseInt(document.getElementById('calc-full-users').value) || 0;
+            const lightUsers = parseInt(document.getElementById('calc-light-users').value) || 0;
+            const hrEmployees = parseInt(document.getElementById('calc-hr-employees').value) || 0;
+            const hostingType = document.getElementById('calc-hosting').value;
+
+            const fullCostMonth = fullUsers * 20;
+            const totalLightCount = lightUsers + hrEmployees;
+            const lightCostMonth = totalLightCount * 8;
+            const hrSavingsYear = hrEmployees * 8 * 12;
+
+            let hostingCostMonth = 250;
+            if (hostingType === 'on_premise') {
+                hostingCostMonth = 180;
+            }
+
+            const totalMonth = fullCostMonth + lightCostMonth + hostingCostMonth;
+            const totalYear = totalMonth * 12;
+
+            document.getElementById('res-full-cost').innerText = `€${fullCostMonth.toLocaleString()} / міс`;
+            document.getElementById('res-light-cost').innerText = `€${lightCostMonth.toLocaleString()} / міс (${totalLightCount} усього)`;
+            document.getElementById('res-total-year').innerText = `€${totalYear.toLocaleString()} / рік`;
+
+            // Dynamic updates for HR Savings Advice
+            const hrCountElem = document.getElementById('res-hr-count');
+            const hrSavingsElem = document.getElementById('res-hr-savings');
+            if (hrCountElem) hrCountElem.innerText = hrEmployees;
+            if (hrSavingsElem) hrSavingsElem.innerText = `€${hrSavingsYear.toLocaleString()} на рік!`;
+        }
+
+        // Copy Code Snippet helper
+        function copyCode(elementId) {
+            const codeText = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(codeText).then(() => {
+                alert('Код успішно скопійовано у буфер обміну!');
+            });
+        }
+
+        // Search Filter
+        function filterContent() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.glass-panel');
+
+            cards.forEach(card => {
+                const text = card.innerText.toLowerCase();
+                if (text.includes(query)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Initial Calculation on Load
+        calculateTCO();
+    </script>
+</body>
+</html>
